@@ -1,0 +1,164 @@
+---
+title: "KEAM Data"
+output:
+  html_document:
+    theme: spacelab
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r setup 1, include=FALSE}
+library(tidyverse)
+library(rio)
+library(here)
+library(colorblindr)
+library(gghighlight)
+library(forcats)
+library(ggrepel)
+library(gt)
+library(knitr)
+library(kableExtra)
+library(reactable)
+library(plotly)
+library(SCVA)
+library(patchwork)
+theme_set(theme_minimal(15) +
+            theme(legend.position = "bottom",
+                  panel.grid.major.x = element_line(color = "gray60"),
+                  panel.grid.minor.x = element_blank(),
+                  panel.grid.major.y = element_blank())
+          )
+
+brief_self <- import(here("data", "KEAM_brief_self.xlsx"),
+               setclass = "tbl_df") 
+
+brief_informant <- import(here("data", "KEAM_brief_informant.xlsx"),
+               setclass = "tbl_df") 
+
+```
+
+```{r, include=FALSE}
+make_color_pal <- function(colors, bias = 1) {
+  get_color <- colorRamp(colors, bias = bias)
+  function(x) rgb(get_color(x), maxColorValue = 255)
+}
+
+good_color <- make_color_pal(c("#ffffff", "#f2fbd2", "#c9ecb4", "#93d3ab", "#35b0ab"), bias = 2)
+seq(0.1, 0.9, length.out = 12)
+good_color(seq(0.1, 0.9, length.out = 12))
+seq(0.1, 0.9, length.out = 12) %>% 
+  good_color() %>% 
+  scales::show_col()
+```
+
+## BRIEF-A {.tabset .tabset-fade .tabset-pills}
+
+### Self-Report
+
+```{r, include=FALSE}
+brief_tbl <- function(df) {
+  df %>% 
+  reactable(
+    columns = list(
+      `Scale/Index` = colDef(align = "center"),
+      `Raw Score` = colDef(name = "Raw Score",
+                           align = "center"),
+      `T-Score` = colDef(name = "T-Score",
+                         align = "center"),
+      `Percentile Rank` = colDef(name = "Percentile Rank",
+                                align = "center")),
+    pagination = FALSE,
+    striped = TRUE,
+    outlined = TRUE,
+    compact = TRUE,
+    highlight = TRUE,
+    bordered = TRUE,
+    #searchable = TRUE,
+    height = 600,
+    width = 500)
+}
+brief_tbl(brief_self)
+brief_self_tbl <- brief_self %>% 
+  reactable(
+    columns = list(
+      `Scale/Index` = colDef(align = "center"),
+      `Raw Score` = colDef(name = "Raw Score",
+                           align = "center"),
+      `T-Score` = colDef(name = "T-Score",
+                         align = "center",
+                         style = function(value) {
+                           value
+                           normalized <- (value - min(brief_self$`T-Score`)) / (max(brief_self$`T-Score`) - min(brief_self$`T-Score`))
+                           color <- good_color(normalized)
+                           list(background = color)
+                         }),
+      `Percentile Rank` = colDef(name = "Percentile Rank",
+                                align = "center",
+                                style = function(value) {
+                           value
+                           normalized <- (value - min(brief_self$`Percentile Rank`)) / (max(brief_self$`Percentile Rank`) - min(brief_self$`Percentile Rank`))
+                           color <- good_color(normalized)
+                           list(background = color)
+                         })),
+    pagination = FALSE,
+    striped = FALSE,
+    outlined = TRUE,
+    compact = TRUE,
+    highlight = TRUE,
+    bordered = FALSE,
+    #searchable = TRUE,
+    height = 600,
+    width = 500)
+```
+
+
+```{r, include=TRUE, fig.height=8, fig.width=10}
+brief_self_tbl
+```
+
+
+
+### Informant Report
+
+```{r, include=FALSE}
+
+brief_inf_tbl <- brief_informant %>% 
+  reactable(
+    columns = list(
+      `Scale/Index` = colDef(align = "center"),
+      `Raw Score` = colDef(name = "Raw Score",
+                           align = "center"),
+      `T-Score` = colDef(name = "T-Score",
+                         align = "center",
+                         style = function(value) {
+                           value
+                           normalized <- (value - min(brief_informant$`T-Score`)) / (max(brief_informant$`T-Score`) - min(brief_informant$`T-Score`))
+                           color <- good_color(normalized)
+                           list(background = color)
+                         }),
+      `Percentile Rank` = colDef(name = "Percentile Rank",
+                                align = "center",
+                                style = function(value) {
+                           value
+                           normalized <- (value - min(brief_informant$`Percentile Rank`)) / (max(brief_informant$`Percentile Rank`) - min(brief_informant$`Percentile Rank`))
+                           color <- good_color(normalized)
+                           list(background = color)
+                         })),
+    pagination = FALSE,
+    striped = FALSE,
+    outlined = TRUE,
+    compact = TRUE,
+    highlight = TRUE,
+    bordered = FALSE,
+    #searchable = TRUE,
+    height = 600,
+    width = 500)
+```
+
+
+```{r, include=TRUE, fig.height=8, fig.width=10}
+brief_inf_tbl
+```
